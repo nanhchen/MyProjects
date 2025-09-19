@@ -1,3 +1,10 @@
+How to run:
+
+From the src folder:
+
+**Execute**: bash main.sh
+
+
 Part 1:
 
 **Compile**: g++ -o main.exe src/main.cpp
