@@ -1,10 +1,69 @@
-#include "Problem.cpp"
-#include "Tree.cpp"
+#include "../header/Problem.hpp"
+#include "../header/Tree.hpp"
 #include <iostream>
 #include <limits>
 #include <stdio.h>
 #include <time.h>
+// personal edits
+#include <sstream>
+#include <set>
 using namespace std;
+
+bool isSolvable(int puzzlebox[9]) {
+    int inversions = 0;
+    for (int i = 0; i < 9; ++i) {
+        if (puzzlebox[i] == 0) continue;
+        for (int j = i + 1; j < 9; ++j) {
+            if (puzzlebox[j] == 0) continue;
+            if (puzzlebox[i] > puzzlebox[j]) inversions++;
+        }
+    }
+    return inversions % 2 == 0;
+}
+
+bool getRowInput(int puzzlebox[], int startIndex, set<int>& used) {
+    string line;
+    int x, y, z;
+
+    while (true) {
+        cout << "\nEnter 3 numbers (1-9) seperated by spaces: ";
+        getline(cin, line);
+        stringstream ss(line);
+
+        if (!(ss >> x >> y >> z)) {
+            cout << "\n\tInvalid input - must be 3 integers (1-9).\n";
+            continue;
+        }
+    
+        if (x < 0 || x > 9 || y < 0 || y > 9 || z < 0 || z > 9) {
+            cout << "\n\tInvalid input - numbers must be between 0 and 9.\n";
+            continue;
+        }
+    
+        if (x==y || y==z || x==z || used.count(x) || used.count(y) || used.count(z)) {
+            cout << "\n\tInvalid input - numbers must be distinct.\n";
+            continue;
+        }
+    
+        string excess;
+        if (ss >> excess) {
+            cout << "\tInvalid input - too many values.\n";
+            continue;
+        }
+
+        // valid inputs --> store
+        puzzlebox[startIndex] = x;
+        puzzlebox[startIndex + 1] = y;
+        puzzlebox[startIndex + 2] = z;
+
+        // mark integers used
+        used.insert(x);
+        used.insert(y);
+        used.insert(z);
+        return true;
+    }
+    
+}
 
 
 int main(){
@@ -31,8 +90,6 @@ int main(){
     if(userPuzzleChoice==1){
         cout << "\nUSING DEFAULT PUZZLE\n";
         cout << "\n";
-        
-        // p = Problem();
 
         cout << "\nInitial State:\n";
         p.printState(p.initialState);
@@ -41,38 +98,25 @@ int main(){
         p.printState(p.goalState);
     }
     else if(userPuzzleChoice==2){
-        cout << "\nEnter your puzzle, use a zero to represent the blank.";
-        cout << "\nEnter the first row, use space or tabs between numbers: ";
-        cin >> puzzleBox[0] >> puzzleBox[1] >> puzzleBox[2];
-        // Validate user input on puzzle pieces for each row
-        while(puzzleBox[0]<0 || puzzleBox[1]<0 || puzzleBox[2]<0){
-            if (cin.fail()) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        set<int> used;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        while (true) {
+            for (int row = 0; row < 3; row++) {
+                cout << "\n\n\t============ ROW " << row+1 << "============\n";
+                cout << "\nEnter your puzzle, use a zero to represent the blank.\n";
+                getRowInput(puzzleBox, row *3, used);
             }
-            cout << "\nPlease select a valid option.\nEnter the first row, use space or tabs between numbers: ";
-            cin >> puzzleBox[0] >> puzzleBox[1] >> puzzleBox[2];
+
+            // Check solvability
+            if (!isSolvable(puzzleBox)) {
+                cout << "\n*** This puzzle configuration is unsolvable. Please try again. ***\n";
+                used.clear();
+            } else {
+                break;
+            }
         }
-        cout << "Enter the second row, use space or tabs between numbers: ";
-        cin >> puzzleBox[3] >> puzzleBox[4] >> puzzleBox[5];
-        while(puzzleBox[3]<0 || puzzleBox[4]<0 || puzzleBox[5]<0){
-            if (cin.fail()) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            }
-            cout << "\nPlease select a valid option.\nEnter the second row, use space or tabs between numbers: ";
-            cin >> puzzleBox[3] >> puzzleBox[4] >> puzzleBox[5];
-        } 
-        cout << "Enter the third row, use space or tabs between numbers: ";
-        cin >> puzzleBox[6] >> puzzleBox[7] >> puzzleBox[8];
-        while(puzzleBox[6]<0 || puzzleBox[7]<0 || puzzleBox[8]<0){
-            if (cin.fail()) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            }
-            cout << "\nPlease select a valid option.\nEnter the third row, use space or tabs between numbers ";
-            cin >> puzzleBox[6] >> puzzleBox[7] >> puzzleBox[8];
-        }
+        
         p = Problem(puzzleBox, SIZE);
         cout << "\nInitial State:\n";
         p.printState(p.initialState);
