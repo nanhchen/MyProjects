@@ -1,3 +1,3 @@
-Compile: g++ -o main.exe src/main.cpp
+Compile: make build
 
-Execute: ./main.exe
+Execute: make run
